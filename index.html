@@ -111,7 +111,7 @@
 
   <script>
     const $ = id => document.getElementById(id);
-    const fmtBRL = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+    const fmtBRL = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(v);
     const fmtPct = (v, digits=6) => (v*100).toLocaleString('pt-BR', { minimumFractionDigits: digits, maximumFractionDigits: digits }) + ' %';
 
     function parseNumber(str){
