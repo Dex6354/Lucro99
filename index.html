@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Calculadora Lucro 99 Pay</title>
+  <link rel="icon" href="https://raw.githubusercontent.com/Dex6354/Lucro99/refs/heads/main/icon.png" />
+  <style>
+    :root{--bg1:#071129;--bg2:#071829;--card:#081226;--accent:#06b6d4;--muted:#9ca3af;--glass: rgba(255,255,255,0.03)}
+    *{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial}
+    html,body{height:100%}
+    body{margin:0;min-height:100vh;background:linear-gradient(180deg,var(--bg1) 0%, var(--bg2) 70%);color:#e6eef6;display:flex;align-items:flex-start;justify-content:center;padding:18px}
+
+    .wrap{width:100%;max-width:920px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:20px;box-shadow:0 8px 30px rgba(2,6,23,0.7)}
+
+    .topHeader{display:flex;align-items:center;gap:12px;margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:12px}
+    .topHeader img{width:40px;height:40px;border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,0.03)}
+    .topHeader h1{font-size:18px;margin:0}
+
+    p.lead{margin:0 0 12px;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type=text], input[type=number]{width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.05);background:var(--glass);color:inherit}
+    .controls{display:flex;gap:10px;margin-top:6px}
+    button{background:var(--accent);color:#042027;padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:600}
+    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+
+    .formulaBox{margin-top:14px;padding:12px;border-radius:8px;background:rgba(6,182,212,0.04);border:1px solid rgba(6,182,212,0.06)}
+    .formulaBox strong{color:var(--accent)}
+
+    .results{margin-top:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .card{background:rgba(255,255,255,0.02);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03); cursor: pointer;}
+    .full{grid-column:1/-1}
+    .big{font-size:20px;font-weight:700}
+    .muted{color:var(--muted);font-size:13px}
+
+    pre.steps{white-space:pre-wrap;font-family:monospace;background:rgba(0,0,0,0.12);padding:12px;border-radius:8px;color:#e6eef6;margin-top:10px;}
+    footer.note{margin-top:12px;color:var(--muted);font-size:13px}
+
+    @media(max-width:720px){.grid{grid-template-columns:1fr}.results{grid-template-columns:1fr}.topHeader h1{font-size:16px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="topHeader">
+      <img src="https://raw.githubusercontent.com/Dex6354/Lucro99/refs/heads/main/icon.png" alt="ícone" />
+      <h1>Calculadora Lucro 99 Pay</h1>
+    </header>
+
+    <div class="grid">
+      <div>
+        <label for="saldo">Saldo (R$)</label>
+        <input id="saldo" type="text" inputmode="decimal" value="1000" />
+      </div>
+
+      <div>
+        <label for="percent">Percentual do CDI (%)</label>
+        <input id="percent" type="text" inputmode="decimal" value="160" />
+      </div>
+
+      <div>
+        <label for="cdi">CDI anual (%)</label>
+        <input id="cdi" type="text" inputmode="decimal" value="14,90" />
+      </div>
+
+      <div>
+        <label>&nbsp;</label>
+        <div class="controls">
+          <button id="calc">Calcular</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="outputArea" style="display:none">
+      <div class="results">
+        <div class="card" id="dailyCard">
+          <div class="muted">Lucro diário</div>
+          <div id="dailyGain" class="big">—</div>
+          <div class="muted" id="perThousand">—</div>
+          <pre id="dailySteps" class="steps" style="display:none;"></pre>
+        </div>
+
+        <div class="card" id="monthlyCard">
+          <div class="muted">Lucro em 30 dias</div>
+          <div id="monthlyGain" class="big">—</div>
+          <div class="muted" id="monthlyPerThousand">—</div>
+          <pre id="monthlySteps" class="steps" style="display:none;"></pre>
+        </div>
+
+        <div class="card" id="annualCard">
+          <div class="muted">Lucro em 365 dias</div>
+          <div id="annualGain" class="big">—</div>
+          <div class="muted" id="annualPerThousand">—</div>
+          <pre id="annualSteps" class="steps" style="display:none;"></pre>
+        </div>
+      </div>
+
+      <div class="formulaBox" style="margin-top: 16px;">
+        <div class="muted">Fórmula de lucro na 99 Pay</div>
+        <div style="margin-top:8px;">
+          <strong>Lucro diário</strong> =
+          <div style="margin-top:8px">((1 + CDI × fator)^(1/365) − 1) × Saldo</div>
+        </div>
+        <div style="margin-top:8px;font-size:13px;color:var(--muted)">CDI e fator são em forma decimal<br>(ex.: 14,90% → 0,1490; 160% → 1,60).</div>
+      </div>
+
+      <footer class="note">Observações: o cálculo mensal usa 30 dias por convenção. A conversão aceita vírgula ou ponto como separador decimal.</footer>
+    </div>
+
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const fmtBRL = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+    const fmtPct = (v, digits=6) => (v*100).toLocaleString('pt-BR', { minimumFractionDigits: digits, maximumFractionDigits: digits }) + ' %';
+
+    function parseNumber(str){
+      if(str === undefined || str === null) return 0;
+      str = String(str).trim();
+      if(str === '') return 0;
+      str = str.replace(/\./g, '').replace(',', '.');
+      const n = Number(str);
+      return isNaN(n) ? 0 : n;
+    }
+
+    let currentCalculatedValues = {}; // To store values for step-by-step
+
+    function calculate(){
+      const saldoRaw = parseNumber($('saldo').value);
+      const percentRaw = parseNumber($('percent').value);
+      const cdiRaw = parseNumber($('cdi').value);
+
+      const saldo = saldoRaw;
+      const fator = (percentRaw) / 100; // ex: 160 -> 1.6
+      const cdi = (cdiRaw) / 100; // ex: 14.90 -> 0.1490
+
+      const effectiveAnnual = cdi * fator; // decimal
+      const dailyRate = Math.pow(1 + effectiveAnnual, 1/365) - 1;
+
+      const dailyGain = dailyRate * saldo;
+      const monthlyGain = (Math.pow(1 + dailyRate, 30) - 1) * saldo;
+      const annualGain = (Math.pow(1 + dailyRate, 365) - 1) * saldo;
+
+      // per 1000
+      const perThousandDaily = dailyRate * 1000;
+      const perThousandMonthly = (Math.pow(1 + dailyRate, 30) - 1) * 1000;
+      const perThousandAnnual = (Math.pow(1 + dailyRate, 365) - 1) * 1000;
+
+      $('outputArea').style.display = 'block';
+      $('dailyGain').textContent = fmtBRL(dailyGain);
+      $('perThousand').textContent = fmtBRL(perThousandDaily) + ' a cada R$ 1.000,00';
+
+      $('monthlyGain').textContent = fmtBRL(monthlyGain);
+      $('monthlyPerThousand').textContent = fmtBRL(perThousandMonthly) + ' a cada R$ 1.000,00';
+
+      $('annualGain').textContent = fmtBRL(annualGain);
+      $('annualPerThousand').textContent = fmtBRL(perThousandAnnual) + ' a cada R$ 1.000,00';
+
+      // Store values for step-by-step
+      currentCalculatedValues = {
+        saldo, percentRaw, cdiRaw, fator, cdi, dailyGain, monthlyGain, annualGain
+      };
+
+      // Hide all steps initially
+      $('dailySteps').style.display = 'none';
+      $('monthlySteps').style.display = 'none';
+      $('annualSteps').style.display = 'none';
+    }
+
+    function generateSteps(type) {
+      const { saldo, percentRaw, cdiRaw, fator, cdi, dailyGain, monthlyGain, annualGain } = currentCalculatedValues;
+
+      const initialSteps = [
+        `1) Saldo: ${fmtBRL(saldo)}`,
+        `2) % do CDI: ${percentRaw} %  → ${fator.toFixed(4)}`,
+        `3) CDI anual: ${cdiRaw} %  → ${cdi.toFixed(4)}`
+      ];
+
+      let formulaStr = '';
+      let valuesStr = '';
+      let resultStr = '';
+      const saldoStr = saldo.toLocaleString('pt-BR', {useGrouping: false});
+
+      switch (type) {
+        case 'daily':
+          formulaStr = '((1 + CDI × fator)^(1/365) − 1) × Saldo';
+          valuesStr = `((1 + ${cdi.toFixed(4)} × ${fator.toFixed(4)})^(1/365) − 1) × ${saldoStr}`;
+          resultStr = `= ${fmtBRL(dailyGain)}`;
+          break;
+        case 'monthly':
+          formulaStr = '((1 + CDI × fator)^(30/365) − 1) × Saldo';
+          valuesStr = `((1 + ${cdi.toFixed(4)} × ${fator.toFixed(4)})^(30/365) − 1) × ${saldoStr}`;
+          resultStr = `= ${fmtBRL(monthlyGain)}`;
+          break;
+        case 'annual':
+          formulaStr = '((1 + CDI × fator)^(365/365) − 1) × Saldo';
+          valuesStr = `((1 + ${cdi.toFixed(4)} × ${fator.toFixed(4)})^(365/365) − 1) × ${saldoStr}`;
+          resultStr = `= ${fmtBRL(annualGain)}`;
+          break;
+      }
+
+      return [
+        initialSteps.join('\n'),
+        formulaStr,
+        valuesStr,
+        resultStr
+      ].join('\n\n');
+    }
+
+    $('calc').addEventListener('click', e => { calculate(); });
+
+    function toggleSteps(stepsId, type) {
+      const stepsElement = $(stepsId);
+      const isVisible = stepsElement.style.display === 'block';
+
+      // Hide all other step sections first
+      ['dailySteps', 'monthlySteps', 'annualSteps'].forEach(id => {
+        if (id !== stepsId) {
+          $(id).style.display = 'none';
+        }
+      });
+
+      if (!isVisible) {
+        stepsElement.textContent = generateSteps(type);
+        stepsElement.style.display = 'block';
+      } else {
+        stepsElement.style.display = 'none';
+      }
+    }
+
+    $('dailyCard').addEventListener('click', () => toggleSteps('dailySteps', 'daily'));
+    $('monthlyCard').addEventListener('click', () => toggleSteps('monthlySteps', 'monthly'));
+    $('annualCard').addEventListener('click', () => toggleSteps('annualSteps', 'annual'));
+
+    // Enter to calculate
+    document.addEventListener('keydown', e => {
+      if(e.key === 'Enter'){
+        if(document.activeElement && (document.activeElement.tagName === 'INPUT')){
+          e.preventDefault();
+          calculate();
+        }
+      }
+    });
+
+  </script>
+</body>
+</html>
